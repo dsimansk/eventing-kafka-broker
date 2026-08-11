@@ -22,12 +22,14 @@ import (
 	"time"
 
 	batchv1 "k8s.io/api/batch/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	testlib "knative.dev/eventing/test/lib"
+	"knative.dev/pkg/reconciler"
 )
 
 const (
@@ -42,8 +44,16 @@ func verifyJobSucceeded(
 	namespacedName types.NamespacedName,
 	job *batchv1.Job) error {
 
-	job, err := client.BatchV1().Jobs(namespacedName.Namespace).Create(ctx, job, metav1.CreateOptions{})
-	if err != nil {
+	if err := reconciler.RetryErrors(func(_ int) error {
+		var createErr error
+		job, createErr = client.BatchV1().Jobs(namespacedName.Namespace).Create(ctx, job, metav1.CreateOptions{})
+		return createErr
+	},
+		apierrors.IsInternalError,
+		apierrors.IsServerTimeout,
+		apierrors.IsServiceUnavailable,
+		apierrors.IsTooManyRequests,
+	); err != nil {
 		return fmt.Errorf("failed to create job: %w", err)
 	}
 

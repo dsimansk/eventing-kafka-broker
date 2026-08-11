@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+export INSTALL_KEDA=true
 source $(dirname "$0")/e2e-common.sh
 export BROKER_TEMPLATES=./templates/kafka-broker
 
