@@ -39,7 +39,7 @@ import (
 //   - numPartitions: number of partitions for the KafkaChannel (as string, e.g., "10")
 //
 // The function creates a receiver named "<channelName>-receiver" and a sender named "<channelName>-sender".
-func FirstEventDelay(channelName, numPartitions string) *feature.Feature {
+func FirstEventDelay(channelName, numPartitions string, sendCount int, sendInterval time.Duration) *feature.Feature {
 	receiverName := channelName + "-receiver"
 	senderName := channelName + "-sender"
 
@@ -71,7 +71,8 @@ func FirstEventDelay(channelName, numPartitions string) *feature.Feature {
 		eventshub.Install(senderName,
 			eventshub.StartSenderToResource(kafkachannelresources.GVR(), channelName),
 			eventshub.InputEvent(event),
-			eventshub.SendMultipleEvents(60, time.Second),
+			eventshub.SendMultipleEvents(sendCount, sendInterval),
+			eventshub.EnableIncrementalId,
 		)(ctx, t)
 	})
 

@@ -20,6 +20,7 @@ package e2enewchannel
 
 import (
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -40,6 +41,18 @@ func TestKafkaChannelFirstEventDelay(t *testing.T) {
 		numPartitions = "32"
 	)
 
+	// SASL/TLS auth scenarios need longer timeouts: the Kafka consumer group
+	// join is slower due to per-partition SASL handshakes with 32 partitions.
+	// With auto.offset.reset=latest the sender must still be active when the
+	// consumer finally joins, otherwise all earlier events are skipped.
+	pollTimeout := time.Minute
+	sendCount := 60
+	sendInterval := time.Second
+	if os.Getenv("EVENTING_KAFKA_BROKER_CHANNEL_AUTH_SCENARIO") != "" {
+		pollTimeout = 3 * time.Minute
+		sendCount = 180
+	}
+
 	for i := 0; i < iterations; i++ {
 		i := i
 		t.Run(fmt.Sprintf("iteration-%d", i), func(t *testing.T) {
@@ -50,13 +63,13 @@ func TestKafkaChannelFirstEventDelay(t *testing.T) {
 				knative.WithLoggingConfig,
 				knative.WithObservabilityConfig,
 				k8s.WithEventListener,
-				environment.WithPollTimings(2*time.Second, time.Minute),
+				environment.WithPollTimings(2*time.Second, pollTimeout),
 				environment.Managed(t),
 			)
 
 			channelName := feature.MakeRandomK8sName("fed-ch")
 
-			f := kafkachannel.FirstEventDelay(channelName, numPartitions)
+			f := kafkachannel.FirstEventDelay(channelName, numPartitions, sendCount, sendInterval)
 			env.Test(ctx, t, f)
 
 			elapsed := time.Since(start)
