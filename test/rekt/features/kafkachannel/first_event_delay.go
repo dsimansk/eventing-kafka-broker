@@ -31,8 +31,7 @@ import (
 )
 
 // FirstEventDelay creates a feature that sets up a KafkaChannel with configurable partitions,
-// a Subscription, an eventshub receiver, sends exactly 1 CloudEvent, and asserts it was received.
-// This feature replicates the core logic of test/scripts/first-event-delay.sh.
+// a Subscription, an eventshub receiver, sends CloudEvents, and asserts they were received.
 //
 // Parameters:
 //   - channelName: name of the KafkaChannel to create

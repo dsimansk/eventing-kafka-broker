@@ -83,3 +83,14 @@ if ! ${GITHUB_ACTIONS:-false}; then
 fi
 
 "${REPO_ROOT_DIR}"/hack/update-deps.sh
+
+# Update cert-manager and trust-manager manifests under third_party/cert-manager.
+# We source the update_cert_manager function from the vendored eventing script
+# (skipping its hardcoded self-invocation) so the versions are controlled here,
+# independent of whatever versions upstream eventing pins.
+cert_manager_installer="${REPO_ROOT_DIR}/vendor/knative.dev/eventing/hack/update-cert-manager.sh"
+
+# shellcheck source=/dev/null
+source <(grep -v '^update_cert_manager ' "${cert_manager_installer}")
+
+update_cert_manager "v1.20.3" "v0.24.0"
