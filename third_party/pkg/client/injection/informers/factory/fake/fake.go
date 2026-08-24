@@ -21,7 +21,7 @@ package fake
 import (
 	context "context"
 
-	externalversions "knative.dev/eventing-kafka-broker/third_party/pkg/client/informers/externalversions"
+	externalversions "github.com/kedacore/keda/v2/pkg/generated/informers/externalversions"
 	fake "knative.dev/eventing-kafka-broker/third_party/pkg/client/injection/client/fake"
 	factory "knative.dev/eventing-kafka-broker/third_party/pkg/client/injection/informers/factory"
 	controller "knative.dev/pkg/controller"

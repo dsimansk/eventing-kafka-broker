@@ -45,7 +45,7 @@ import (
 	internalsclient "knative.dev/eventing-kafka-broker/control-plane/pkg/client/clientset/versioned"
 	internalslst "knative.dev/eventing-kafka-broker/control-plane/pkg/client/listers/internalskafkaeventing/v1alpha1"
 
-	kedaclientset "knative.dev/eventing-kafka-broker/third_party/pkg/client/clientset/versioned"
+	kedaclientset "github.com/kedacore/keda/v2/pkg/generated/clientset/versioned"
 )
 
 const (

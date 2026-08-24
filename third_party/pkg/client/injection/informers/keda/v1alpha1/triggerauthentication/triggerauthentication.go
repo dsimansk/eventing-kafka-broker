@@ -21,21 +21,16 @@ package triggerauthentication
 import (
 	context "context"
 
-	v1alpha1 "knative.dev/eventing-kafka-broker/third_party/pkg/client/informers/externalversions/keda/v1alpha1"
+	v1alpha1 "github.com/kedacore/keda/v2/pkg/generated/informers/externalversions/keda/v1alpha1"
 	factory "knative.dev/eventing-kafka-broker/third_party/pkg/client/injection/informers/factory"
 	controller "knative.dev/pkg/controller"
-	injection "knative.dev/pkg/injection"
 	logging "knative.dev/pkg/logging"
 )
-
-func init() {
-	injection.Default.RegisterInformer(withInformer)
-}
 
 // Key is used for associating the Informer inside the context.Context.
 type Key struct{}
 
-func withInformer(ctx context.Context) (context.Context, controller.Informer) {
+func WithInformer(ctx context.Context) (context.Context, controller.Informer) {
 	f := factory.Get(ctx)
 	inf := f.Keda().V1alpha1().TriggerAuthentications()
 	return context.WithValue(ctx, Key{}, inf), inf.Informer()
@@ -46,7 +41,7 @@ func Get(ctx context.Context) v1alpha1.TriggerAuthenticationInformer {
 	untyped := ctx.Value(Key{})
 	if untyped == nil {
 		logging.FromContext(ctx).Panic(
-			"Unable to fetch knative.dev/eventing-kafka-broker/third_party/pkg/client/informers/externalversions/keda/v1alpha1.TriggerAuthenticationInformer from context.")
+			"Unable to fetch github.com/kedacore/keda/v2/pkg/generated/informers/externalversions/keda/v1alpha1.TriggerAuthenticationInformer from context.")
 	}
 	return untyped.(v1alpha1.TriggerAuthenticationInformer)
 }

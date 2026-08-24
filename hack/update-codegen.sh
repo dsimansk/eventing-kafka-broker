@@ -29,7 +29,6 @@ echo "=== Update Codegen for $MODULE_NAME"
 group "Generating checksums for configmap _example keys"
 
 "${REPO_ROOT_DIR}"/hack/update-checksums.sh
-cp -R "${REPO_ROOT_DIR}/vendor/github.com/kedacore/keda/v2/apis/keda/v1alpha1" "${REPO_ROOT_DIR}"/third_party/pkg/apis/keda/
 
 group "Kubernetes Codegen"
 
@@ -44,13 +43,6 @@ kube::codegen::gen_client \
   --with-watch \
   "${REPO_ROOT_DIR}/control-plane/pkg/apis"
 
-kube::codegen::gen_client \
-  --boilerplate "${REPO_ROOT_DIR}/hack/boilerplate/boilerplate.go.txt" \
-  --output-dir "${REPO_ROOT_DIR}/third_party/pkg/client" \
-  --output-pkg "knative.dev/eventing-kafka-broker/third_party/pkg/client" \
-  --with-watch \
-  "${REPO_ROOT_DIR}/third_party/pkg/apis"
-
 group "Knative Codegen"
 
 # Knative Injection
@@ -59,9 +51,18 @@ group "Knative Codegen"
   "eventing:v1alpha1 messaging:v1 messaging:v1beta1 sources:v1 sources:v1beta1 bindings:v1beta1 internalskafkaeventing:v1alpha1" \
   --go-header-file "${REPO_ROOT_DIR}"/hack/boilerplate/boilerplate.go.txt
 
+# KEDA ships its own generated clientset/informers/listers, so we neither copy its
+# apis nor regenerate a clientset. Generate only the thin knative injection wrapper
+# on top of KEDA's upstream client. --disable-informer-init keeps the KEDA informers
+# opt-in (we only use the injection client). Note the KEDA apis package still imports
+# controller-runtime (KEDA is on the kubebuilder v3 layout), so binaries importing
+# this wrapper must call flags.DropControllerRuntimeKubeconfigFlag() before sharedmain.
+OUTPUT_PKG="knative.dev/eventing-kafka-broker/third_party/pkg/client/injection" \
 "${KNATIVE_CODEGEN_PKG}"/hack/generate-knative.sh "injection" \
-  knative.dev/eventing-kafka-broker/third_party/pkg/client knative.dev/eventing-kafka-broker/third_party/pkg/apis \
+  github.com/kedacore/keda/v2/pkg/generated \
+  github.com/kedacore/keda/v2/apis \
   "keda:v1alpha1" \
+  --disable-informer-init \
   --go-header-file "${REPO_ROOT_DIR}"/hack/boilerplate/boilerplate.go.txt
 
 group "Update deps post-codegen"

@@ -27,13 +27,15 @@ import (
 	"knative.dev/pkg/kmeta"
 	"knative.dev/pkg/logging"
 
+	"github.com/kedacore/keda/v2/pkg/generated/clientset/versioned"
+
 	bindings "knative.dev/eventing-kafka-broker/control-plane/pkg/apis/bindings/v1"
 	"knative.dev/eventing-kafka-broker/control-plane/pkg/apis/config"
 	"knative.dev/eventing-kafka-broker/control-plane/pkg/apis/internalskafkaeventing"
-	"knative.dev/eventing-kafka-broker/third_party/pkg/client/clientset/versioned"
+
+	kedav1alpha1 "github.com/kedacore/keda/v2/apis/keda/v1alpha1"
 
 	"knative.dev/eventing-kafka-broker/control-plane/pkg/autoscaler"
-	kedav1alpha1 "knative.dev/eventing-kafka-broker/third_party/pkg/apis/keda/v1alpha1"
 
 	kafkainternals "knative.dev/eventing-kafka-broker/control-plane/pkg/apis/internalskafkaeventing/v1alpha1"
 	"knative.dev/eventing-kafka-broker/control-plane/pkg/kafka"

@@ -26,6 +26,8 @@ import (
 	"time"
 
 	"github.com/IBM/sarama"
+	kedav1alpha1 "github.com/kedacore/keda/v2/apis/keda/v1alpha1"
+	kedaclientset "github.com/kedacore/keda/v2/pkg/generated/clientset/versioned"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.uber.org/zap"
@@ -38,6 +40,16 @@ import (
 	"k8s.io/apiserver/pkg/storage/names"
 	"k8s.io/client-go/kubernetes"
 	corelisters "k8s.io/client-go/listers/core/v1"
+	eventingduckv1alpha1 "knative.dev/eventing/pkg/apis/duck/v1alpha1"
+	"knative.dev/eventing/pkg/observability"
+	"knative.dev/eventing/pkg/scheduler"
+	"knative.dev/pkg/apis"
+	"knative.dev/pkg/logging"
+	"knative.dev/pkg/observability/attributekey"
+	pointer "knative.dev/pkg/ptr"
+	"knative.dev/pkg/reconciler"
+	"knative.dev/pkg/resolver"
+
 	"knative.dev/eventing-kafka-broker/control-plane/pkg/apis/config"
 	internalsapi "knative.dev/eventing-kafka-broker/control-plane/pkg/apis/internalskafkaeventing"
 	kafkainternals "knative.dev/eventing-kafka-broker/control-plane/pkg/apis/internalskafkaeventing/v1alpha1"
@@ -51,17 +63,6 @@ import (
 	"knative.dev/eventing-kafka-broker/control-plane/pkg/kafka/clientpool"
 	"knative.dev/eventing-kafka-broker/control-plane/pkg/prober"
 	"knative.dev/eventing-kafka-broker/control-plane/pkg/reconciler/base"
-	kedav1alpha1 "knative.dev/eventing-kafka-broker/third_party/pkg/apis/keda/v1alpha1"
-	kedaclientset "knative.dev/eventing-kafka-broker/third_party/pkg/client/clientset/versioned"
-	eventingduckv1alpha1 "knative.dev/eventing/pkg/apis/duck/v1alpha1"
-	"knative.dev/eventing/pkg/observability"
-	"knative.dev/eventing/pkg/scheduler"
-	"knative.dev/pkg/apis"
-	"knative.dev/pkg/logging"
-	"knative.dev/pkg/observability/attributekey"
-	pointer "knative.dev/pkg/ptr"
-	"knative.dev/pkg/reconciler"
-	"knative.dev/pkg/resolver"
 )
 
 var (

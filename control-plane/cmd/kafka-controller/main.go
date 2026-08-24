@@ -35,6 +35,7 @@ import (
 
 	kafkainternals "knative.dev/eventing-kafka-broker/control-plane/pkg/apis/internalskafkaeventing"
 	"knative.dev/eventing-kafka-broker/control-plane/pkg/config"
+	"knative.dev/eventing-kafka-broker/control-plane/pkg/flags"
 	"knative.dev/eventing-kafka-broker/control-plane/pkg/kafka/clientpool"
 	"knative.dev/eventing-kafka-broker/control-plane/pkg/reconciler/broker"
 	"knative.dev/eventing-kafka-broker/control-plane/pkg/reconciler/channel"
@@ -51,6 +52,10 @@ const (
 )
 
 func main() {
+	// The KEDA client pulls in controller-runtime, whose init() registers a
+	// global "kubeconfig" flag that collides with knative sharedmain. Drop it
+	// before sharedmain registers its own.
+	flags.DropControllerRuntimeKubeconfigFlag()
 
 	brokerEnv, err := config.GetEnvConfig("BROKER", broker.ValidateDefaultBackoffDelayMs)
 	if err != nil {
