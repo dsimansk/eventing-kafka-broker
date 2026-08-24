@@ -26,7 +26,6 @@ import (
 	"knative.dev/pkg/controller"
 	"knative.dev/pkg/injection/sharedmain"
 
-	"knative.dev/eventing-kafka-broker/control-plane/pkg/flags"
 	"knative.dev/eventing-kafka-broker/control-plane/pkg/reconciler/consumer"
 	"knative.dev/eventing-kafka-broker/control-plane/pkg/reconciler/consumergroup"
 	"knative.dev/eventing-kafka-broker/control-plane/pkg/reconciler/source"
@@ -37,11 +36,6 @@ const (
 )
 
 func main() {
-	// The KEDA client pulls in controller-runtime, whose init() registers a
-	// global "kubeconfig" flag that collides with knative sharedmain. Drop it
-	// before sharedmain registers its own.
-	flags.DropControllerRuntimeKubeconfigFlag()
-
 	sharedmain.MainNamed(signals.NewContext(), component,
 
 		// KafkaSource controller
