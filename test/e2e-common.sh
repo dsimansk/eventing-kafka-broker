@@ -123,9 +123,7 @@ function knative_eventing() {
   ./test/upload-test-images.sh "test/test_images" e2e || fail_test "Error uploading test images"
 
   kafka_setup
-  if [[ "${INSTALL_KEDA:-false}" == "true" ]]; then
-    keda_setup
-  fi
+  keda_setup
 }
 
 function kafka_setup() {
