@@ -221,6 +221,22 @@ func (a *clusterAdmin) DeleteConsumerGroupOffset(group string, topic string, par
 	return err
 }
 
+func (a *clusterAdmin) AlterConsumerGroupOffsets(group string, offsets map[string]map[int32]sarama.OffsetAndMetadata, options *sarama.AlterConsumerGroupOffsetsOptions) (*sarama.OffsetCommitResponse, error) {
+	x, err := a.clusterAdmin.AlterConsumerGroupOffsets(group, offsets, options)
+	if a.isFatalError(err) {
+		a.onFatalError(err)
+	}
+	return x, err
+}
+
+func (a *clusterAdmin) ListOffsets(partitions map[string]map[int32]int64, options *sarama.ListOffsetsOptions) (map[string]map[int32]*sarama.OffsetResult, error) {
+	x, err := a.clusterAdmin.ListOffsets(partitions, options)
+	if a.isFatalError(err) {
+		a.onFatalError(err)
+	}
+	return x, err
+}
+
 func (a *clusterAdmin) DeleteConsumerGroup(group string) error {
 	err := a.clusterAdmin.DeleteConsumerGroup(group)
 	if a.isFatalError(err) {

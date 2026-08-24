@@ -287,6 +287,20 @@ func (m *MockKafkaClusterAdmin) ListConsumerGroupOffsets(group string, topicPart
 	panic("implement me")
 }
 
+func (m *MockKafkaClusterAdmin) AlterConsumerGroupOffsets(group string, offsets map[string]map[int32]sarama.OffsetAndMetadata, options *sarama.AlterConsumerGroupOffsetsOptions) (*sarama.OffsetCommitResponse, error) {
+	if m.ErrorBrokenPipe {
+		return nil, brokenPipeError{}
+	}
+	panic("implement me")
+}
+
+func (m *MockKafkaClusterAdmin) ListOffsets(partitions map[string]map[int32]int64, options *sarama.ListOffsetsOptions) (map[string]map[int32]*sarama.OffsetResult, error) {
+	if m.ErrorBrokenPipe {
+		return nil, brokenPipeError{}
+	}
+	panic("implement me")
+}
+
 func (m *MockKafkaClusterAdmin) DeleteConsumerGroup(group string) error {
 	if m.ErrorBrokenPipe {
 		return brokenPipeError{}

@@ -18,14 +18,33 @@ package v1alpha1
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
-	"knative.dev/pkg/apis"
-	"knative.dev/pkg/apis/duck"
 )
+
+// listable is satisfied by duck types that can enumerate their list
+// representation. Previously provided by knative.dev/pkg/apis.Listable.
+type listable interface {
+	runtime.Object
+	GetListType() runtime.Object
+}
+
+// populatable is satisfied by skeleton resources that can fill in all
+// fields for JSON round-trip verification.
+// Previously provided by knative.dev/pkg/apis/duck.Populatable.
+type populatable interface {
+	listable
+	Populate()
+}
+
+// implementable is satisfied by the embeddable duck-type fragment
+// (e.g. ScaleTriggers) that points back to the full wrapper type.
+// Previously provided by knative.dev/pkg/apis/duck.Implementable.
+type implementable interface {
+	GetFullType() populatable
+}
 
 const (
 	// Default polling interval for a ScaledObject triggers if no pollingInterval is defined.
@@ -39,7 +58,8 @@ type WithTriggers struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec WithTriggersSpec `json:"spec"`
+	InternalKind string           `json:"internalKind"`
+	Spec         WithTriggersSpec `json:"spec"`
 }
 
 // WithTriggersSpec is the spec for a an object with triggers resource
@@ -48,25 +68,23 @@ type WithTriggersSpec struct {
 	Triggers        []ScaleTriggers `json:"triggers"`
 }
 
-// Assert that we implement the interfaces necessary to
-// use duck.VerifyType.
 var (
-	_ duck.Populatable   = (*WithTriggers)(nil)
-	_ duck.Implementable = (*ScaleTriggers)(nil)
-	_ apis.Listable      = (*WithTriggers)(nil)
+	_ populatable   = (*WithTriggers)(nil)
+	_ implementable = (*ScaleTriggers)(nil)
+	_ listable      = (*WithTriggers)(nil)
 )
 
-// GetFullType implements duck.Implementable
-func (*ScaleTriggers) GetFullType() duck.Populatable {
+// GetFullType implements implementable.
+func (*ScaleTriggers) GetFullType() populatable {
 	return &WithTriggers{}
 }
 
-// Populate implements duck.Populatable
+// Populate implements populatable.
 func (t *WithTriggers) Populate() {
 	t.Spec.Triggers = []ScaleTriggers{{}}
 }
 
-// GetListType implements apis.Listable
+// GetListType implements listable.
 func (*WithTriggers) GetListType() runtime.Object {
 	return &WithTriggersList{}
 }
@@ -89,7 +107,37 @@ func (t *WithTriggers) GetPollingInterval() time.Duration {
 	return time.Second * time.Duration(defaultPollingInterval)
 }
 
-// GenerateIdenitifier returns identifier for the object in for "kind.namespace.name"
-func (t *WithTriggers) GenerateIdenitifier() string {
-	return strings.ToLower(fmt.Sprintf("%s.%s.%s", t.Kind, t.Namespace, t.Name))
+// GenerateIdentifier returns identifier for the object in for "kind.namespace.name"
+func (t *WithTriggers) GenerateIdentifier() string {
+	return GenerateIdentifier(t.InternalKind, t.Namespace, t.Name)
+}
+
+// AsDuckWithTriggers tries to generate WithTriggers object for input object
+// returns error if input object is unknown
+func AsDuckWithTriggers(scalableObject interface{}) (*WithTriggers, error) {
+	switch obj := scalableObject.(type) {
+	case *ScaledObject:
+		return &WithTriggers{
+			TypeMeta:     obj.TypeMeta,
+			ObjectMeta:   obj.ObjectMeta,
+			InternalKind: "ScaledObject",
+			Spec: WithTriggersSpec{
+				PollingInterval: obj.Spec.PollingInterval,
+				Triggers:        obj.Spec.Triggers,
+			},
+		}, nil
+	case *ScaledJob:
+		return &WithTriggers{
+			TypeMeta:     obj.TypeMeta,
+			ObjectMeta:   obj.ObjectMeta,
+			InternalKind: "ScaledJob",
+			Spec: WithTriggersSpec{
+				PollingInterval: obj.Spec.PollingInterval,
+				Triggers:        obj.Spec.Triggers,
+			},
+		}, nil
+	default:
+		// here could be the conversion from unknown Duck type potentially in the future
+		return nil, fmt.Errorf("unknown scalable object type %v", scalableObject)
+	}
 }

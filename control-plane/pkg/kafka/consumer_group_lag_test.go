@@ -228,6 +228,14 @@ func (s *saramaClientMock) DeleteConsumerGroupOffset(group string, topic string,
 	panic("implement me")
 }
 
+func (s *saramaClientMock) AlterConsumerGroupOffsets(group string, offsets map[string]map[int32]sarama.OffsetAndMetadata, options *sarama.AlterConsumerGroupOffsetsOptions) (*sarama.OffsetCommitResponse, error) {
+	panic("implement me")
+}
+
+func (s *saramaClientMock) ListOffsets(partitions map[string]map[int32]int64, options *sarama.ListOffsetsOptions) (map[string]map[int32]*sarama.OffsetResult, error) {
+	panic("implement me")
+}
+
 func (s *saramaClientMock) DescribeClientQuotas(components []sarama.QuotaFilterComponent, strict bool) ([]sarama.DescribeClientQuotasEntry, error) {
 	panic("implement me")
 }
